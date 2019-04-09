@@ -1,0 +1,6 @@
+*.pyc
+*.log
+/build/salt/cert/
+/env/
+/static/
+build/deployment_config.yml

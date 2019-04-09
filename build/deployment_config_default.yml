@@ -1,0 +1,18 @@
+application_name: 
+
+# where is the sourcecode located
+repository: git@bitbucket.org:something/other.git
+
+# instances where the application is deployed
+deployment_targets:
+  test: 127.0.0.1
+  dev: 192.168.xx.xx
+
+# what is the user that is going to ssh to the target instance and do the work
+deployment_user: deployer
+
+# from which branch should each target clone the source code
+target_branch:
+  test: testbranch
+  dev: develop
+  prod: master

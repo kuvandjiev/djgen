@@ -1,0 +1,12 @@
+[Unit]
+Description="djgen uWSGI"
+
+[Service]
+ExecStart=/webapps/djgen/env/bin/uwsgi --ini /etc/uwsgi/apps-enabled/djgen.ini --uid webapps --gid webapps --logto /var/log/uwsgi/djgen.log
+
+KillSignal=SIGQUIT
+Type=simple
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

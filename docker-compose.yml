@@ -1,0 +1,86 @@
+version: '3.2'
+services:
+  db:
+    image: postgres
+    stdin_open: true
+    tty: true
+    environment:
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgres"
+      - "POSTGRES_DB=djtest"
+    ports:
+      - '5432:5432'
+    volumes:
+      # the postgresql-volume is made as an external volume to facilitate database persistence
+      - postgresql-djtest-volume:/var/lib/postgresql/data
+    networks:
+        app_djtest_net:
+            ipv4_address: 173.17.2.3
+  redis:
+    image: 'bitnami/redis:latest'
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=CPkkoYbwbUrl2O6JwZlvp9CjTocoU6l0AmCwD5u0XEVfKOjb6Go7wqr2wjtmRhArjl3dry43zhA3m5To
+    networks:
+        app_djtest_net:
+            ipv4_address: 173.17.2.4
+  web:
+     build: .
+     command: sh - '/webapps/djgen/dc_entry.sh'
+     stdin_open: true
+     tty: true
+     volumes:
+       - .:/webapps/djgen
+     ports:
+       - "8000:8000"
+     depends_on:
+       - db
+       - redis
+       - rabbitmq
+     environment:
+     - "APP_ENV=LOCAL"   
+     - "APP_DEBUG=True"
+     - "APP_DBHOST=db"
+     - "APP_DBNAME=djtest"
+     - "APP_DBUSER=postgres"
+     - "APP_DBPASSWORD=postgres"
+     - "APP_DBPORT=5432"
+     - "APP_LOGGING_DIR=/var/log/webapp/"
+     - "APP_REDIS_PASSWORD=CPkkoYbwbUrl2O6JwZlvp9CjTocoU6l0AmCwD5u0XEVfKOjb6Go7wqr2wjtmRhArjl3dry43zhA3m5To"
+     - "APP_RABBITMQ_PASSWORD=3jDC0oOz4M3yn1rkrg0WYSza0KLi1xvCH0Im5XNfigxg98TY4YFRKXjj9u2x6E87WWyvvJIbTL0a9Aq6"
+     - "APP_ALLOWED_HOSTS=localhost,127.0.0.1"
+     networks:
+        app_djtest_net:
+            ipv4_address: 173.17.2.2
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - ./build/docker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.config
+    networks:
+        app_djtest_net:
+            ipv4_address: 173.17.2.6
+  proxy:
+    image: nginx
+    command: sh -c "nginx -g 'daemon off;'"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./build/docker/proxy.conf:/etc/nginx/conf.d/default.conf
+      - ./static:/webapps/djgen/static
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+        app_djtest_net:
+            ipv4_address: 173.17.2.5
+volumes:
+  postgresql-djtest-volume:
+    external: true
+networks:
+  app_djtest_net:
+    external: true
